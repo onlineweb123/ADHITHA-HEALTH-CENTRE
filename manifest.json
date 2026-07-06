@@ -2,7 +2,7 @@
   "name": "Adhitha Health Center",
   "short_name": "Adhitha Database",
   "description": "Realtime Hospital Payment Tracker and Billing System",
-  "start_url": "/index.html",
+  "start_url": "index.html",
   "display": "standalone",
   "background_color": "#f0f4f8",
   "theme_color": "#0288d1",
