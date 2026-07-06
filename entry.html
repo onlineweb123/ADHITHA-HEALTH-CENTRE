@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="ta">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Add Transaction | Smart Tracker</title>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Plus Jakarta Sans', sans-serif; }
+        :root { --bg: #f0f4f8; --primary: #0288d1; --text-main: #333333; --text-sub: #666666; }
+        body { background-color: var(--bg); color: var(--text-main); height: 100vh; display: flex; flex-direction: column; }
+        .content { width: 100%; height: 100%; display: flex; flex-direction: column; }
+        header { background-color: var(--primary); color: white; padding: 15px 20px; text-align: center; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+        .main-scroll { flex: 1; overflow-y: auto; padding: 15px; padding-bottom: 90px; }
+        .container { max-width: 600px; margin: 0 auto; }
+        .entry-panel { background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); display: flex; flex-direction: column; gap: 15px; }
+        .form-group { margin-bottom: 10px; display: flex; flex-direction: column; gap: 6px;}
+        .form-group label { font-weight: 600; font-size: 14px; }
+        .form-group input { width: 100%; padding: 12px; border: 1px solid #ccc; border-radius: 8px; font-size: 15px; outline: none; }
+        .radio-group { display: flex; gap: 10px; margin-top: 5px; }
+        .radio-option { flex: 1; }
+        .radio-option label { display: block; background: #f8f9fa; border: 2px solid #e9ecef; text-align: center; padding: 12px; border-radius: 8px; cursor: pointer; }
+        .radio-option input { display: none; }
+        .radio-option input:checked + label { background: #e1f5fe; border-color: var(--primary); color: var(--primary); font-weight: bold; }
+        .submit-btn { width: 100%; background: var(--primary); color: white; border: none; padding: 14px; font-size: 16px; font-weight: bold; border-radius: 8px; cursor: pointer; }
+    
+    
+    
+        /* Bottom Tab Navigation Bar */
+        .bottom {
+            height: 70px; position: fixed; bottom: 0; left: 0; right: 0; 
+            display: flex; justify-content: space-around; align-items: center; 
+            background: white; border-top: 1px solid var(--border); z-index: 100;
+        }
+        .bottom button { background: none; border: none; font-size: 11px; font-weight: 600; display: flex; flex-direction: column; align-items: center; color: var(--text-sub); cursor: pointer; width: 25%; }
+        .bottom button.active { color: var(--primary); }
+        .bottom .icon { font-size: 20px; margin-bottom: 3px; }
+
+        /* புதிதாக சேர்க்கப்பட்ட லிஸ்ட் ஸ்டைல் */
+        .history-panel { background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); margin-top: 20px; }
+        .history-title { font-size: 16px; font-weight: 700; margin-bottom: 12px; color: var(--primary); display: flex; justify-content: space-between; }
+        .transaction-list { display: flex; flex-direction: column; gap: 10px; }
+        .transaction-item { padding: 12px; border: 1px solid #e2e8f0; border-radius: 8px; display: flex; justify-content: space-between; align-items: center; background: #fafafa; }
+        .item-details { display: flex; flex-direction: column; gap: 4px; }
+        .item-name { font-weight: 600; font-size: 15px; }
+        .item-time { font-size: 12px; color: var(--text-sub); }
+        .item-right { text-align: right; display: flex; flex-direction: column; gap: 4px; }
+        .item-amount { font-weight: 700; font-size: 15px; color: #2e7d32; }
+        .item-type { font-size: 12px; font-weight: 600; padding: 2px 6px; border-radius: 4px; background: #e0e0e0; display: inline-block; }
+        .type-cash { background: #e8f5e9; color: #2e7d32; }
+        .type-gpay { background: #e1f5fe; color: #0288d1; }
+        .no-data { text-align: center; color: var(--text-sub); font-size: 14px; padding: 15px 0; }
+    </style>
+</head>
+<body>
+
+<div class="content">
+    <header><h1>Add Transaction</h1></header>
+    <div class="main-scroll">
+        <div class="container">
+            <div class="entry-panel">
+                <form id="billingForm">
+                    <div class="form-group">
+                        <label for="transDate">Date</label>
+                        <input type="date" id="transDate" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="patientName">Patient Name</label>
+                        <input type="text" id="patientName" placeholder="Enter patient name" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="amount">Amount (₹)</label>
+                        <input type="number" id="amount" placeholder="Enter amount" required>
+                    </div>
+              
+                    <div class="form-group">
+                        <label>Payment Method</label>
+                        <div class="radio-group">
+                            <div class="radio-option"><input type="radio" id="payCash" name="paymentMethod" value="Cash" checked><label for="payCash">💵 Cash</label></div>
+                            <div class="radio-option"><input type="radio" id="payGPay" name="paymentMethod" value="GPay"><label for="payGPay">📱 GPay</label></div>
+                        </div>
+                    </div>
+                    <button type="submit" class="submit-btn" id="submitBtn">Save Transaction</button>
+                </form>
+            </div>
+
+            <!-- லிஸ்ட் காட்டும் புதிய பகுதி -->
+            <div class="history-panel">
+                <div class="history-title">
+                    <span>Transactions List</span>
+                    <span id="totalDayAmount" style="color: #2e7d32;">Total: ₹0</span>
+                </div>
+                <div class="transaction-list" id="todayTransactions">
+                    <div class="no-data">Loading transactions...</div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+
+    <!-- Bottom Tab Navigation -->
+    <div class="bottom">
+        <button id="navHome" onclick="location.href='index.html'"><span class="icon">🏠</span>Home</button>
+        <button onclick="location.href='filter.html'"><span class="icon">📙</span>Filter</button>
+        <button onclick="location.href='entry.html'"class="active"><span class="icon">➕</span>Entry</button>
+        <button onclick="location.href='delete_data.html'"><span class="icon">🗑️</span>Delete</button>
+    </div>
+
+</div>
+
+<script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js";
+    import { getDatabase, ref, get, push, set, onValue } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-database.js";
+
+    // Date Field Initialization (Default to Current Date)
+    const dateInput = document.getElementById('transDate');
+    const today = new Date();
+    const offset = today.getTimezoneOffset();
+    const localDate = new Date(today.getTime() - (offset * 60 * 1000));
+    dateInput.value = localDate.toISOString().split('T')[0];
+
+    const firebaseConfig = { databaseURL: "https://all-projects-2a14a-default-rtdb.firebaseio.com", projectId: "all-projects-2a14a" };
+    const app = initializeApp(firebaseConfig);
+    const db = getDatabase(app);
+    let activeAdminName = localStorage.getItem("aquaUser") || "Guest";
+
+    // லிஸ்ட் டேட்டாவை கொண்டு வரும் ஃபங்க்ஷன்
+    function loadTransactionsForSelectedDate() {
+        const dateInputVal = dateInput.value; 
+        if (!dateInputVal) return;
+
+        const dateParts = dateInputVal.split('-');
+        const targetDateStr = `${dateParts[2]}/${dateParts[1]}/${dateParts[0]}`; // DD/MM/YYYY
+
+        const dbRef = ref(db, `users/${activeAdminName}/transactions`);
+        
+        onValue(dbRef, (snapshot) => {
+            const listContainer = document.getElementById('todayTransactions');
+            const totalText = document.getElementById('totalDayAmount');
+            listContainer.innerHTML = '';
+            
+            let totalAmount = 0;
+            let hasData = false;
+
+            if (snapshot.exists()) {
+                const data = snapshot.val();
+                
+                // எண்ட்ரிகளை லேட்டஸ்ட் முதலில் வரும்படி வரிசைப்படுத்த
+                const sortedKeys = Object.keys(data).reverse();
+
+                sortedKeys.forEach(key => {
+                    const item = data[key];
+                    // தேதி வடிவத்தை மட்டும் ஒப்பிட்டுப் பார்க்கிறது (DD/MM/YYYY)
+                    if (item.date && item.date.startsWith(targetDateStr)) {
+                        hasData = true;
+                        totalAmount += parseFloat(item.amt || 0);
+
+                        const timePart = item.date.split(', ')[1] || '';
+
+                        const itemHtml = `
+                            <div class="transaction-item">
+                                <div class="item-details">
+                                    <span class="item-name">${item.customer}</span>
+                                    <span class="item-time">${timePart}</span>
+                                </div>
+                                <div class="item-right">
+                                    <span class="item-amount">₹${item.amt}</span>
+                                    <span class="item-type ${item.type === 'Cash' ? 'type-cash' : 'type-gpay'}">
+                                        ${item.type === 'Cash' ? '💵 Cash' : '📱 GPay'}
+                                    </span>
+                                </div>
+                            </div>
+                        `;
+                        listContainer.insertAdjacentHTML('beforeend', itemHtml);
+                    }
+                });
+            }
+
+            totalText.innerText = `Total: ₹${totalAmount}`;
+            if (!hasData) {
+                listContainer.innerHTML = '<div class="no-data">No transactions found for this date.</div>';
+            }
+        });
+    }
+
+    // காலண்டர் தேதியை மாற்றும்போது லிஸ்ட் தானாக மாறும்
+    dateInput.addEventListener('change', loadTransactionsForSelectedDate);
+    loadTransactionsForSelectedDate();
+
+    document.getElementById('billingForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        
+        const submitBtn = document.getElementById('submitBtn');
+        submitBtn.innerText = "Saving...";
+        submitBtn.disabled = true;
+        
+        const dateInputVal = document.getElementById('transDate').value; 
+        const dateParts = dateInputVal.split('-'); 
+        
+        const yearStr = dateParts[0];
+        const monthStr = dateParts[1];
+        const dayStr = dateParts[2];
+        
+        const timeStr = new Date().toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', hour12: true });
+        const timestampFormat = `${dayStr}/${monthStr}/${yearStr}, ${timeStr}`;
+
+        const payload = {
+            customer: document.getElementById('patientName').value.trim(),
+            amt: parseFloat(document.getElementById('amount').value),
+            type: document.querySelector('input[name="paymentMethod"]:checked').value,
+            date: timestampFormat
+        };
+
+        try {
+            await set(push(ref(db, `users/${activeAdminName}/transactions`)), payload);
+            alert("Transaction saved successfully!");
+            
+            // பக்கம் மாறாமல் ஃபார்மை மட்டும் ரீசெட் செய்கிறது
+            document.getElementById('patientName').value = '';
+            document.getElementById('amount').value = '';
+            document.getElementById('payCash').checked = true;
+            
+        } catch (error) { 
+            alert("Error saving data!"); 
+        } finally {
+            submitBtn.innerText = "Save Transaction";
+            submitBtn.disabled = false;
+        }
+    });
+</script>
+
+</body>
+</html>
